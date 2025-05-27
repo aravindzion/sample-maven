@@ -40,6 +40,7 @@ jobs:
           --user=${{ secrets.JFROG_USERNAME }} \
           --access-token=${{ secrets.JFROG_TOKEN }} \
           --enc-password=false \
+          --overwrite=true \
           --interactive=false
 
     - name: Upload all DAR files to JFrog (versioned folder) using JFrog CLI
