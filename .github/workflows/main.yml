@@ -37,7 +37,9 @@ jobs:
       run: |
         jfrog config add xl-temp-artifactory \
           --url=https://trial702ns3.jfrog.io/artifactory \
+          --user=${{ secrets.JFROG_USERNAME }} \
           --access-token=${{ secrets.JFROG_TOKEN }} \
+          --enc-password=false \
           --interactive=false
 
     - name: Upload all DAR files to JFrog (versioned folder) using JFrog CLI
