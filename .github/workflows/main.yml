@@ -36,7 +36,7 @@ jobs:
     - name: Configure JFrog CLI
       run: |
         jfrog config add xl-temp-artifactory \
-          --url=https://trial702ns3.jfrog.io/artifactory \
+          --url=https://trial702ns3.jfrog.io \
           --user=${{ secrets.JFROG_USERNAME }} \
           --access-token=${{ secrets.JFROG_TOKEN }} \
           --enc-password=false \
