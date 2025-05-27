@@ -11,10 +11,16 @@ jobs:
 
     env:
       ARTIFACT_DIR: deploy-artifacts/builds/latest
+      DOWNLOAD_ARTIFACT_DIR: download-artifacts/builds/latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Set up JFrog CLI
+      uses: jfrog/setup-jfrog-cli@v3
+      with:
+        version: latest
 
     - name: Generate timestamp version
       id: version
@@ -27,11 +33,19 @@ jobs:
         echo "This is a simulated DAR package" > $ARTIFACT_DIR/agate_app2.dar
         echo "This is a simulated DAR package" > $ARTIFACT_DIR/agate_app3.dar
 
-    - name: Upload all DAR files to JFrog (versioned folder)
+    - name: Configure JFrog CLI
       run: |
-        for file in $ARTIFACT_DIR/*.dar; do
-          echo "Uploading $file..."
-          curl -u "${{ secrets.JFROG_USERNAME }}:${{ secrets.JFROG_TOKEN }}" \
-               -T "$file" \
-               "${{ secrets.JFROG_URL }}/agate-xl-deploy/builds/${VERSION}/$(basename "$file")"
-        done
+        jfrog config add xl-temp-artifactory \
+          --url ${{ secrets.JFROG_URL }} \
+          --user ${{ secrets.JFROG_USERNAME }} \
+          --password ${{ secrets.JFROG_TOKEN }} \
+          --interactive=false
+
+    - name: Upload all DAR files to JFrog (versioned folder) using JFrog CLI
+      run: |
+        jfrog rt upload "$ARTIFACT_DIR/*.dar" "agate-xl-deploy/builds/${VERSION}/" --flat=true
+        
+    - name: Download all DAR files from JFrog using JFrog CLI
+      run: |
+        mkdir -p $DOWNLOAD_ARTIFACT_DIR
+        jfrog rt download "agate-xl-deploy/builds/${VERSION}/*.dar" "$DOWNLOAD_ARTIFACT_DIR/" --flat=true
