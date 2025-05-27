@@ -1,0 +1,37 @@
+name: XL Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    env:
+      ARTIFACT_DIR: deploy-artifacts/builds/latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Generate timestamp version
+      id: version
+      run: echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Prepare build artifacts on runner
+      run: |
+        mkdir -p $ARTIFACT_DIR
+        echo "This is a simulated DAR package" > $ARTIFACT_DIR/agate_app.dar
+        echo "This is a simulated DAR package" > $ARTIFACT_DIR/agate_app2.dar
+        echo "This is a simulated DAR package" > $ARTIFACT_DIR/agate_app3.dar
+
+    - name: Upload all DAR files to JFrog (versioned folder)
+      run: |
+        for file in $ARTIFACT_DIR/*.dar; do
+          echo "Uploading $file..."
+          curl -u "${{ secrets.JFROG_USERNAME }}:${{ secrets.JFROG_TOKEN }}" \
+               -T "$file" \
+               "${{ secrets.JFROG_URL }}/agate-xl-deploy/builds/${VERSION}/$(basename "$file")"
+        done
